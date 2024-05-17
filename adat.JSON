@@ -1,0 +1,40 @@
+{
+  "emberekLISTA": [
+    {
+      "id": "ae34",
+      "nev": "Jenő",
+      "kor": 23,
+      "nem": true
+    },
+    {
+      "id": "1dff",
+      "nev": "Juli",
+      "kor": 33,
+      "nem": false
+    },
+    {
+      "id": "6fba",
+      "nev": "Géza",
+      "kor": 13,
+      "nem": true
+    },
+    {
+      "id": "f32f",
+      "nev": "Ádám",
+      "kor": 33,
+      "nem": true
+    },
+    {
+      "id": "2672",
+      "nev": "Béla",
+      "kor": 45,
+      "nem": true
+    },
+    {
+      "id": "d0eb",
+      "nev": "VIKI",
+      "kor": "2",
+      "nem": false
+    }
+  ]
+}

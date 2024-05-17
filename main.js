@@ -1,75 +1,58 @@
-import { emberekLISTA } from "./adat.js";
-import { rendezNev, rendezKor, rendezNem } from "./adatkezelo.js";
-import { htmlOsszeallit, megjelenit } from "./listaMegjelenit.js";
-import { szures } from "./adatkezelo.js";
-import { torol } from "./adatkezelo.js";
-/*FELADAT SPECIFIKÁCIÓ
-jelenítsük meg a listánkat egy táblázatban, majd a listát tudjuk rendezni pl név szerint, ha rákattintunk a táblázat fejlécére, akkor rendezze be a táblázat sorait
-tudjunk szűrni név alapján, 
-tudjunk uj adatot hozzáadni a táblázathoz
-tudjuk törölni a táblázat egy sorát */
-/* függvények és eljárások
-1. htmlOsszeallit(lista)->txt | összeállítja a táblázat html szerkezetét egy szöveges vátozóba
-2. megjelenit(txt) - | megjelenítette egy adott html elembe a paraméterébe kapott szöveget
-3. rendez(lista)-> rendezettLista | a paraméterében kapott listát név szerint rendezi; a függvény akkor fut le, ha a táblázat név fejlécére kattintunk
-4. adatHosszaadas(lista)-> kiegeszitettLista | összegyűjti az űrlapról az adatokat és összeállít belőlük egy objektumot, majd azt beleteszi a listába, a függvény akkor fut le, ha  rákattintunk a hozzáad submit gombra
-5. torol(lista, id)-> kitörli a listából az adott id-ju elemet, akkor fog lefutni, ha a töröl gombot megnyomjuk
-6. szures(lista, kereseoSzoveg)->szurtLista a keresőmezőbe beírt szöveget keresi a lista objektumainak név mezőjében., akkor fut le, ha beírunk valamit a keresőmezőbe
-*/
-let irany = 1; /* 1 = novekvő rendezés, -1 =  */
-init(emberekLISTA);
-function init(lista) {
-  megjelenit(htmlOsszeallit(lista));
-  rendezEsemeny();
-  szuresEsemeny();
-  torolEsemeny();
+//import { emberekLISTA } from "./adat.js";
+import { sorTorles, szuresNevSzerint, tablazatRendez } from "./adatKezelo.js";
+import { deleteAdat, getAdat } from "./asszinkron.js";
+import { megjelenites, tablazatOsszeallit } from "./fuggvenyek.js";
+import { adatokListaba } from "./urlapKezelo.js";
+
+getAdat("http://localhost:3000/emberekLISTA", init)
+
+let nevIrany = 1;
+//init(emberekLISTA);
+nevSzuresEsemeny();
+
+
+
+export function init(lista) {
+  let txt = tablazatOsszeallit(lista);
+  adatokListaba(lista)
+  megjelenites(txt);
+  nevRendezEsemeny(lista);
+  sorTorlesEsemeny(lista)
 }
-rendezEsemeny();
-function rendezEsemeny() {
-  const nevELEM = $(".adatok table th").eq(0);
-  const korELEM = $(".adatok table th").eq(1);
-  const nemELEM = $(".adatok table th").eq(2);
-  console.log(rendezNev(emberekLISTA));
+
+function nevRendezEsemeny(lista) {
+  /* ha a táblázat név fejlécmezőjére kattintunk, akkor berendezzük a listát, és megjelenítjük újra a táblázatot */
+  const nevELEM = $(".adatok th").eq(0); /* első fejléc th elem */
   nevELEM.on("click", function () {
-    const rLISTA = rendezNev(emberekLISTA, irany);
-    console.log(rLISTA);
-    init(rLISTA);
-    irany *= -1;
-  });
-  korELEM.on("click", function () {
-    const rLISTA = rendezKor(emberekLISTA, irany);
-    console.log(rLISTA);
-    init(rLISTA);
-    irany *= -1;
-  });
-  nemELEM.on("click", function () {
-    const rLISTA = rendezNem(emberekLISTA, irany);
-    console.log(rLISTA);
-    init(rLISTA);
-    irany *= -1;
+    const LISTA = tablazatRendez(lista, nevIrany);
+
+    nevIrany *= -1;
+    init(LISTA);
   });
 }
-/* szorgalmi: további mezők szerinti rendezések megvalósítása */
-function szuresEsemeny() {
-  const keresoELEM = $("#szuro");
-  keresoELEM.on("keyup", function () {
-    let kereseoSzoveg = keresoELEM.val();
-    const szLISTA = szures(emberekLISTA, kereseoSzoveg);
-    console.log(szLISTA);
-    init(szLISTA);
+
+function nevSzuresEsemeny() {
+  /* a szűrőbe írt szó alaján kilistázza azokat az adatokat a listából, amelyekben szerepel a név mezőjében az adott szó. 
+Ezután megjelenítjük a szűrt listát az oldalon. 
+Akkor fog lefutni, amikor megváltozik a szűrőmező tartalma  */
+  const szuroELEM = $("#szNev");
+  szuroELEM.on("keyup", function () {
+    let szuroSZoveg = szuroELEM.val();
+    const LISTA = szuresNevSzerint(lista, szuroSZoveg);
+    init(LISTA);
   });
 }
-/* const szurtLISTA = szures(emberekLISTA, "je");
-console.log(szurtLISTA); */
+/* szorgalmi: szűrés más mezők alaőpján is működjön  */
 
-function torolEsemeny(){
-  const torolGOMB = $(".torol");
-torolGOMB.on("click", function (event) {
-  let id = event.target.id;
-  const LISTA = torol(emberekLISTA, id);
-  init(LISTA)
-});
-
+function sorTorlesEsemeny() {
+  /* minden sor végén legyen egy kuka, a sor indexével, erre a kukára kattintva töröljük az adott sort a listából, és újra megjelenítjük a táblázatot a módosult listával.   */
+  const kukaELEM = $(".kuka");
+  kukaELEM.on("click", function (event) {
+    let index = event.target.id; /*  az aktuális kuka indexe */
+/*     const LISTA = sorTorles(lista,index);
+    console.log(LISTA)
+    init(LISTA); */
+    deleteAdat("http://localhost:3000/emberekLISTA", id)
+  });
 }
-
-
+/*  szorgalmi: Mi a hiba a programban?  */
